@@ -87,7 +87,7 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
             setAutoTextColor(luminance > 186 ? "#000" : "#fff")
         }
     }, [isOpen])
-    
+
     useEffect(() => {
         if (
             hoveredIndex === null ||
