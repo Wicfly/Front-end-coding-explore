@@ -87,7 +87,7 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
             setAutoTextColor(luminance > 186 ? "#000" : "#fff")
         }
     }, [isOpen])
-
+    
     useEffect(() => {
         if (
             hoveredIndex === null ||
@@ -143,6 +143,7 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                 width: "fit-content",
                 height: isOpen && items.length > 0 ? menuPad * 2 + 46 : "fit-content",
                 display: "flex",
+                flexDirection: isOpen ? "column" : "row",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: isOpen ? gap : 0,
@@ -216,7 +217,6 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                     pointerEvents: "none",
                 }}
             />
-
             {isOpen && hoveredIndex !== null && (
                 <motion.div
                     style={{
