@@ -172,7 +172,7 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                 }}
             />
 
-            {isOpen && items.length > 0 ? (
+{isOpen && items.length > 0 ? (
                 <div
                     style={{
                         position: "relative",
