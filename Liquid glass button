@@ -72,6 +72,18 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
 
     const buttonRef = useRef<HTMLDivElement>(null)
     const [isOpen, setIsOpen] = useState(false)
+    const innerItemRadius = Math.max(0, borderRadius - 8)
+
+    const handleItemClick = (link: string) => {
+        if (link.startsWith("#")) {
+            const target = document.getElementById(link.slice(1))
+            if (target) {
+                target.scrollIntoView({ behavior: "smooth" })
+            }
+        } else {
+            window.location.href = link
+        }
+    }
 
     // Calculate padding values
     const padLeft = paddingLeft ?? padding
@@ -171,32 +183,62 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                     pointerEvents: "none",
                 }}
             />
-
-{isOpen && items.length > 0 ? (
+                        
+             {isOpen && items.length > 0 ? (
                 <div
                     style={{
                         position: "relative",
                         zIndex: 2,
                         display: "flex",
-                        flexDirection: "column",
+                        flexDirection: "row",
                         gap,
-                        color: textColor,
-                        ...font,
-                        fontWeight: 600,
-                        textAlign: "center",
+                        alignItems: "center",
                     }}
                 >
                     {items.map((item, index) => (
-                        <a
+                        <div
                             key={index}
-                            href={item.link}
+                            onClick={() => handleItemClick(item.link)}
                             style={{
-                                textDecoration: "none",
-                                color: "inherit",
+                                position: "relative",
+                                padding: "4px 12px",
+                                borderRadius: innerItemRadius,
+                                cursor: "pointer",
+                                overflow: "hidden",
                             }}
                         >
-                            {item.label}
-                        </a>
+                            <div
+                                style={{
+                                    position: "absolute",
+                                    inset: 0,
+                                    background: "rgba(128,128,128,0.25)",
+                                    backdropFilter: `blur(${blurAmount}px)`,
+                                    filter: "url(#liquid-wrap-filter)",
+                                }}
+                            />
+                            <div
+                                style={{
+                                    position: "absolute",
+                                    inset: 0,
+                                    borderRadius: innerItemRadius,
+                                    border: `1px inset ${innerBorderColor}`,
+                                    opacity: innerBorderOpacity,
+                                    pointerEvents: "none",
+                                }}
+                            />
+                            <span
+                                style={{
+                                    position: "relative",
+                                    zIndex: 1,
+                                    color: textColor,
+                                    ...font,
+                                    fontWeight: 600,
+                                    whiteSpace: "nowrap",
+                                }}
+                            >
+                                {item.label}
+                            </span>
+                        </div>
                     ))}
                 </div>
             ) : (
