@@ -87,6 +87,7 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
             setAutoTextColor(luminance > 186 ? "#000" : "#fff")
         }
     }, [isOpen])
+    
     useEffect(() => {
         if (
             hoveredIndex === null ||
@@ -122,6 +123,7 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
     const items = menuItems ?? []
     const gap = itemGap ?? 8
     const menuPad = menuPadding ?? padding
+    const highlightMargin = menuPad
 
     return (
         <motion.div
