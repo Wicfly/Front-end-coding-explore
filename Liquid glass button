@@ -1,7 +1,6 @@
 import { addPropertyControls, ControlType } from "framer"
-import { useRef } from "react"
+import { useRef, useState } from "react"
 import { motion } from "framer-motion"
-import * as PhosphorIcons from "phosphor-react"
 
 interface LiquidGlassButtonProps {
     text: string
@@ -12,10 +11,6 @@ interface LiquidGlassButtonProps {
     wrapStrength: number
     borderRadius: number
     font: any
-    iconName: string
-    iconWeight: string
-    iconColor: string
-    iconSize: number
     outerBorderColor: string
     outerBorderOpacity: number
     innerBorderColor: string
@@ -26,6 +21,9 @@ interface LiquidGlassButtonProps {
     paddingRight: number
     paddingTop: number
     paddingBottom: number
+    menuItems?: { label: string; link: string }[]
+    itemGap?: number
+    menuPadding?: number
     onClick?: () => void
     style?: React.CSSProperties
 }
@@ -38,7 +36,7 @@ function hexToRGB(hex: string) {
 }
 
 /**
- * LiquidGlass Button with font and Phosphor icon option
+ * LiquidGlass Button with font
  *
  * @framerIntrinsicWidth 200
  * @framerIntrinsicHeight 60
@@ -55,9 +53,6 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
         wrapStrength,
         borderRadius,
         font,
-        iconName,
-        iconWeight,
-        iconColor,
         outerBorderColor,
         outerBorderOpacity,
         innerBorderColor,
@@ -68,21 +63,31 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
         paddingRight,
         paddingTop,
         paddingBottom,
+        menuItems,
+        itemGap,
+        menuPadding,
         onClick,
         style,
     } = props
 
     const buttonRef = useRef<HTMLDivElement>(null)
+    const [isOpen, setIsOpen] = useState(false)
 
     // Calculate padding values
     const padLeft = paddingLeft ?? padding
     const padRight = paddingRight ?? padding
     const padTop = paddingTop ?? padding
     const padBottom = paddingBottom ?? padding
+    const items = menuItems ?? []
+    const gap = itemGap ?? 8
+    const menuPad = menuPadding ?? padding
 
     return (
         <motion.div
             ref={buttonRef}
+            layout
+            onHoverStart={() => setIsOpen(true)}
+            onHoverEnd={() => setIsOpen(false)}
             onClick={onClick}
             style={{
                 position: "relative",
@@ -92,15 +97,17 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                 width: "fit-content",
                 height: "fit-content",
                 display: "flex",
+                flexDirection: isOpen ? "column" : "row",
                 alignItems: "center",
                 justifyContent: "center",
+                gap: isOpen ? gap : 0,
                 boxShadow: shadow ? "0 2px 8px rgba(0,0,0,0.08)" : "none",
                 border: `1px solid ${outerBorderColor}`,
                 opacity: outerBorderOpacity,
-                paddingLeft: padLeft,
-                paddingRight: padRight,
-                paddingTop: padTop,
-                paddingBottom: padBottom,
+                paddingLeft: isOpen ? menuPad : padLeft,
+                paddingRight: isOpen ? menuPad : padRight,
+                paddingTop: isOpen ? menuPad : padTop,
+                paddingBottom: isOpen ? menuPad : padBottom,
                 ...style,
             }}
             whileHover={{ scale: 1.05 }}
@@ -165,37 +172,51 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                 }}
             />
 
-            <div
-                style={{
-                    position: "relative",
-                    zIndex: 2,
-                    color: textColor,
-                    ...font,
-                    fontWeight: 600,
-                    textAlign: "center",
-                    whiteSpace: "nowrap",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 8,
-                }}
-            >
-                {/* Icon dari phosphor */}
-                {PhosphorIcons[iconName] &&
-                    (() => {
-                        const IconComponent = PhosphorIcons[
-                            iconName
-                        ] as React.ElementType
-                        return (
-                            <IconComponent
-                                size={props.iconSize || 18}
-                                color={iconColor}
-                                weight={iconWeight as any}
-                            />
-                        )
-                    })()}
-                {text}
-            </div>
+            {isOpen && items.length > 0 ? (
+                <div
+                    style={{
+                        position: "relative",
+                        zIndex: 2,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap,
+                        color: textColor,
+                        ...font,
+                        fontWeight: 600,
+                        textAlign: "center",
+                    }}
+                >
+                    {items.map((item, index) => (
+                        <a
+                            key={index}
+                            href={item.link}
+                            style={{
+                                textDecoration: "none",
+                                color: "inherit",
+                            }}
+                        >
+                            {item.label}
+                        </a>
+                    ))}
+                </div>
+            ) : (
+                <div
+                    style={{
+                        position: "relative",
+                        zIndex: 2,
+                        color: textColor,
+                        ...font,
+                        fontWeight: 600,
+                        textAlign: "center",
+                        whiteSpace: "nowrap",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                    }}
+                >
+                    {text}
+                </div>
+            )}
         </motion.div>
     )
 }
@@ -223,31 +244,6 @@ addPropertyControls(LiquidGlassButton, {
         type: ControlType.Color,
         title: "Text Color",
         defaultValue: "#FFFFFF",
-    },
-    iconName: {
-        type: ControlType.String,
-        title: "Phosphor Icon",
-        defaultValue: "ShoppingCart",
-        placeholder: "e.g. Star, Heart, User",
-    },
-    iconWeight: {
-        type: ControlType.Enum,
-        title: "Icon Weight",
-        defaultValue: "fill",
-        options: ["thin", "light", "regular", "bold", "fill", "duotone"],
-    },
-    iconColor: {
-        type: ControlType.Color,
-        title: "Icon Color",
-        defaultValue: "#FFFFFF",
-    },
-    iconSize: {
-        type: ControlType.Number,
-        title: "Icon Size",
-        defaultValue: 24,
-        min: 1,
-        max: 100,
-        step: 1,
     },
     backgroundColor: {
         type: ControlType.Color,
@@ -334,5 +330,36 @@ addPropertyControls(LiquidGlassButton, {
         defaultValue: true,
         enabledTitle: "Show",
         disabledTitle: "Hide",
+    },
+    menuItems: {
+        type: ControlType.Array,
+        title: "Menu Items",
+        propertyControl: {
+            type: ControlType.Object,
+            controls: {
+                label: { type: ControlType.String, title: "Label" },
+                link: { type: ControlType.String, title: "Link" },
+            },
+        },
+        defaultValue: [
+            { label: "Page 1", link: "#" },
+            { label: "Page 2", link: "#" },
+        ],
+    },
+    itemGap: {
+        type: ControlType.Number,
+        title: "Item Gap",
+        defaultValue: 8,
+        min: 0,
+        max: 40,
+        step: 1,
+    },
+    menuPadding: {
+        type: ControlType.Number,
+        title: "Menu Padding",
+        defaultValue: 12,
+        min: 0,
+        max: 60,
+        step: 1,
     },
 })
