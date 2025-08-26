@@ -1,5 +1,5 @@
 import { addPropertyControls, ControlType } from "framer"
-import { useRef, useState } from "react"
+import { useRef, useState, useEffect } from "react"
 import { motion } from "framer-motion"
 
 interface LiquidGlassButtonProps {
@@ -72,8 +72,20 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
 
     const buttonRef = useRef<HTMLDivElement>(null)
     const [isOpen, setIsOpen] = useState(false)
+    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+    const [autoTextColor, setAutoTextColor] = useState(textColor)
     const innerItemRadius = Math.max(0, borderRadius - 8)
 
+    useEffect(() => {
+        if (!isOpen) return
+        if (typeof window !== "undefined") {
+            const bg = window.getComputedStyle(document.body).backgroundColor
+            const rgb = bg.match(/\d+/g)?.map(Number) ?? [255, 255, 255]
+            const luminance = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]
+            setAutoTextColor(luminance > 186 ? "#000" : "#fff")
+        }
+    }, [isOpen])
+    
     const handleItemClick = (link: string) => {
         if (link.startsWith("#")) {
             const target = document.getElementById(link.slice(1))
@@ -122,8 +134,8 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                 paddingBottom: isOpen ? menuPad : padBottom,
                 ...style,
             }}
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+            whileHover={{ scale: 1.02 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
         >
             <svg style={{ display: "none" }}>
                 <filter id="liquid-wrap-filter">
@@ -183,8 +195,7 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                     pointerEvents: "none",
                 }}
             />
-                        
-             {isOpen && items.length > 0 ? (
+            {isOpen && items.length > 0 ? (
                 <div
                     style={{
                         position: "relative",
@@ -198,6 +209,8 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                     {items.map((item, index) => (
                         <div
                             key={index}
+                            onMouseEnter={() => setHoveredIndex(index)}
+                            onMouseLeave={() => setHoveredIndex(null)}
                             onClick={() => handleItemClick(item.link)}
                             style={{
                                 position: "relative",
@@ -207,15 +220,20 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                                 overflow: "hidden",
                             }}
                         >
-                            <div
-                                style={{
-                                    position: "absolute",
-                                    inset: 0,
-                                    background: "rgba(128,128,128,0.25)",
-                                    backdropFilter: `blur(${blurAmount}px)`,
-                                    filter: "url(#liquid-wrap-filter)",
-                                }}
-                            />
+                            {hoveredIndex === index && (
+                                <motion.div
+                                    layoutId="hover-bg"
+                                    style={{
+                                        position: "absolute",
+                                        inset: 0,
+                                        background: "rgba(128,128,128,0.25)",
+                                        backdropFilter: `blur(${blurAmount}px)`,
+                                        filter: "url(#liquid-wrap-filter)",
+                                        borderRadius: innerItemRadius,
+                                    }}
+                                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                                />
+                            )}
                             <div
                                 style={{
                                     position: "absolute",
@@ -230,9 +248,9 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                                 style={{
                                     position: "relative",
                                     zIndex: 1,
-                                    color: textColor,
+                                    color: autoTextColor,
                                     ...font,
-                                    fontWeight: 600,
+                                    fontWeight: 500,
                                     whiteSpace: "nowrap",
                                 }}
                             >
@@ -259,6 +277,7 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                     {text}
                 </div>
             )}
+            
         </motion.div>
     )
 }
