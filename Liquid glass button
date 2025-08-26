@@ -118,13 +118,10 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
     const padRight = paddingRight ?? padding
     const padTop = paddingTop ?? padding
     const padBottom = paddingBottom ?? padding
+    // menu layout values
     const items = menuItems ?? []
     const gap = itemGap ?? 8
     const menuPad = menuPadding ?? padding
-    const items = menuItems ?? []
-    const gap = itemGap ?? 8
-    const menuPad = menuPadding ?? padding
-    const highlightMargin = menuPad
 
     return (
         <motion.div
