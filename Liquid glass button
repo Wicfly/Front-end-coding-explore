@@ -224,8 +224,6 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                         top: highlightMargin,
                         bottom: highlightMargin,
                         background: "rgba(128,128,128,0.25)",
-                        backdropFilter: `blur(${blurAmount}px)`,
-                        filter: "url(#liquid-wrap-filter)",
                         borderRadius: highlightRadius,
                         zIndex: 1,
                         pointerEvents: "none",
