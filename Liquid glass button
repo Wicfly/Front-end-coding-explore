@@ -76,9 +76,7 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
     const [autoTextColor, setAutoTextColor] = useState(textColor)
     const [hoverBg, setHoverBg] = useState({ left: 0, width: 0 })
-    const highlightMargin = 4
-    const highlightPad = 8
-    const highlightRadius = Math.max(0, borderRadius - highlightMargin)
+    const highlightRadius = 50
 
     useEffect(() => {
         if (!isOpen) return
@@ -99,10 +97,11 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
         const containerRect = buttonRef.current.getBoundingClientRect()
         const itemRect = itemRefs.current[hoveredIndex].getBoundingClientRect()
         setHoverBg({
-            left: itemRect.left - containerRect.left - highlightPad,
-            width: itemRect.width + highlightPad * 2,
+            left: itemRect.left - containerRect.left,
+            width: itemRect.width,
         })
     }, [hoveredIndex, isOpen])
+
     const handleItemClick = (link: string) => {
         if (link.startsWith("#")) {
             const target = document.getElementById(link.slice(1))
@@ -122,13 +121,20 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
     const items = menuItems ?? []
     const gap = itemGap ?? 8
     const menuPad = menuPadding ?? padding
+    const items = menuItems ?? []
+    const gap = itemGap ?? 8
+    const menuPad = menuPadding ?? padding
+    const highlightMargin = menuPad
 
     return (
         <motion.div
             ref={buttonRef}
             layout
             onHoverStart={() => setIsOpen(true)}
-            onHoverEnd={() => setIsOpen(false)}
+            onHoverEnd={() => {
+                setIsOpen(false)
+                setHoveredIndex(null)
+            }}
             onClick={onClick}
             style={{
                 position: "relative",
@@ -136,7 +142,7 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                 cursor: "pointer",
                 borderRadius,
                 width: "fit-content",
-                height: "fit-content",
+                height: isOpen && items.length > 0 ? menuPad * 2 + 46 : "fit-content",
                 display: "flex",
                 flexDirection: isOpen ? "column" : "row",
                 alignItems: "center",
@@ -214,24 +220,22 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
             />
             {isOpen && hoveredIndex !== null && (
                 <motion.div
-                    layoutId="hover-bg"
                     style={{
                         position: "absolute",
                         top: highlightMargin,
                         bottom: highlightMargin,
-                        left: hoverBg.left,
-                        width: hoverBg.width,
                         background: "rgba(128,128,128,0.25)",
                         backdropFilter: `blur(${blurAmount}px)`,
                         filter: "url(#liquid-wrap-filter)",
                         borderRadius: highlightRadius,
-        
                         zIndex: 1,
                         pointerEvents: "none",
                     }}
-                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                    animate={{ left: hoverBg.left, width: hoverBg.width }}
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 />
             )}
+
             {isOpen && items.length > 0 ? (
                 <div
                     style={{
@@ -248,12 +252,14 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                             key={index}
                             ref={(el) => (itemRefs.current[index] = el!)}
                             onMouseEnter={() => setHoveredIndex(index)}
-                            onMouseLeave={() => setHoveredIndex(null)}
                             onClick={() => handleItemClick(item.link)}
                             style={{
                                 position: "relative",
                                 zIndex: 2,
-                                padding: "0 12px",
+                                padding: "0 15px",
+                                height: 46,
+                                display: "flex",
+                                alignItems: "center",
                                 cursor: "pointer",
                             }}
                         >
@@ -430,7 +436,7 @@ addPropertyControls(LiquidGlassButton, {
     menuPadding: {
         type: ControlType.Number,
         title: "Menu Padding",
-        defaultValue: 12,
+        defaultValue: 4,
         min: 0,
         max: 60,
         step: 1,
