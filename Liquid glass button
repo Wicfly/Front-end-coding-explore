@@ -89,7 +89,6 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
             setAutoTextColor(luminance > 186 ? "#000" : "#fff")
         }
     }, [isOpen])
-
     useEffect(() => {
         if (
             hoveredIndex === null ||
@@ -104,7 +103,6 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
             width: itemRect.width + highlightPad * 2,
         })
     }, [hoveredIndex, isOpen])
-
     const handleItemClick = (link: string) => {
         if (link.startsWith("#")) {
             const target = document.getElementById(link.slice(1))
@@ -140,6 +138,7 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                 width: "fit-content",
                 height: "fit-content",
                 display: "flex",
+                flexDirection: isOpen ? "column" : "row",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: isOpen ? gap : 0,
@@ -213,7 +212,6 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                     pointerEvents: "none",
                 }}
             />
-
             {isOpen && hoveredIndex !== null && (
                 <motion.div
                     layoutId="hover-bg"
@@ -234,7 +232,6 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                     transition={{ type: "spring", stiffness: 300, damping: 20 }}
                 />
             )}
-
             {isOpen && items.length > 0 ? (
                 <div
                     style={{
