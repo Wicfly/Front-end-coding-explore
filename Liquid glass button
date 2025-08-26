@@ -71,10 +71,14 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
     } = props
 
     const buttonRef = useRef<HTMLDivElement>(null)
+    const itemRefs = useRef<HTMLDivElement[]>([])
     const [isOpen, setIsOpen] = useState(false)
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
     const [autoTextColor, setAutoTextColor] = useState(textColor)
-    const innerItemRadius = Math.max(0, borderRadius - 8)
+    const [hoverBg, setHoverBg] = useState({ left: 0, width: 0 })
+    const highlightMargin = 4
+    const highlightPad = 8
+    const highlightRadius = Math.max(0, borderRadius - highlightMargin)
 
     useEffect(() => {
         if (!isOpen) return
@@ -85,7 +89,20 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
             setAutoTextColor(luminance > 186 ? "#000" : "#fff")
         }
     }, [isOpen])
-    
+    useEffect(() => {
+        if (
+            hoveredIndex === null ||
+            !buttonRef.current ||
+            !itemRefs.current[hoveredIndex]
+        )
+            return
+        const containerRect = buttonRef.current.getBoundingClientRect()
+        const itemRect = itemRefs.current[hoveredIndex].getBoundingClientRect()
+        setHoverBg({
+            left: itemRect.left - containerRect.left - highlightPad,
+            width: itemRect.width + highlightPad * 2,
+        })
+    }, [hoveredIndex, isOpen])
     const handleItemClick = (link: string) => {
         if (link.startsWith("#")) {
             const target = document.getElementById(link.slice(1))
@@ -195,6 +212,26 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                     pointerEvents: "none",
                 }}
             />
+            {isOpen && hoveredIndex !== null && (
+                <motion.div
+                    layoutId="hover-bg"
+                    style={{
+                        position: "absolute",
+                        top: highlightMargin,
+                        bottom: highlightMargin,
+                        left: hoverBg.left,
+                        width: hoverBg.width,
+                        background: "rgba(128,128,128,0.25)",
+                        backdropFilter: `blur(${blurAmount}px)`,
+                        filter: "url(#liquid-wrap-filter)",
+                        borderRadius: highlightRadius,
+        
+                        zIndex: 1,
+                        pointerEvents: "none",
+                    }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                />
+            )}
             {isOpen && items.length > 0 ? (
                 <div
                     style={{
@@ -209,41 +246,17 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                     {items.map((item, index) => (
                         <div
                             key={index}
+                            ref={(el) => (itemRefs.current[index] = el!)}
                             onMouseEnter={() => setHoveredIndex(index)}
                             onMouseLeave={() => setHoveredIndex(null)}
                             onClick={() => handleItemClick(item.link)}
                             style={{
                                 position: "relative",
-                                padding: "4px 12px",
-                                borderRadius: innerItemRadius,
+                                zIndex: 2,
+                                padding: "0 12px",
                                 cursor: "pointer",
-                                overflow: "hidden",
                             }}
                         >
-                            {hoveredIndex === index && (
-                                <motion.div
-                                    layoutId="hover-bg"
-                                    style={{
-                                        position: "absolute",
-                                        inset: 0,
-                                        background: "rgba(128,128,128,0.25)",
-                                        backdropFilter: `blur(${blurAmount}px)`,
-                                        filter: "url(#liquid-wrap-filter)",
-                                        borderRadius: innerItemRadius,
-                                    }}
-                                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                                />
-                            )}
-                            <div
-                                style={{
-                                    position: "absolute",
-                                    inset: 0,
-                                    borderRadius: innerItemRadius,
-                                    border: `1px inset ${innerBorderColor}`,
-                                    opacity: innerBorderOpacity,
-                                    pointerEvents: "none",
-                                }}
-                            />
                             <span
                                 style={{
                                     position: "relative",
@@ -277,7 +290,6 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                     {text}
                 </div>
             )}
-            
         </motion.div>
     )
 }
