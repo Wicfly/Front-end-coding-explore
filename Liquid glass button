@@ -1,7 +1,6 @@
 import { addPropertyControls, ControlType } from "framer"
 import { useRef } from "react"
 import { motion } from "framer-motion"
-import * as PhosphorIcons from "phosphor-react"
 
 interface LiquidGlassButtonProps {
     text: string
@@ -12,10 +11,6 @@ interface LiquidGlassButtonProps {
     wrapStrength: number
     borderRadius: number
     font: any
-    iconName: string
-    iconWeight: string
-    iconColor: string
-    iconSize: number
     outerBorderColor: string
     outerBorderOpacity: number
     innerBorderColor: string
@@ -38,7 +33,7 @@ function hexToRGB(hex: string) {
 }
 
 /**
- * LiquidGlass Button with font and Phosphor icon option
+ * LiquidGlass Button with font
  *
  * @framerIntrinsicWidth 200
  * @framerIntrinsicHeight 60
@@ -55,9 +50,6 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
         wrapStrength,
         borderRadius,
         font,
-        iconName,
-        iconWeight,
-        iconColor,
         outerBorderColor,
         outerBorderOpacity,
         innerBorderColor,
@@ -177,23 +169,8 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    gap: 8,
                 }}
             >
-                {/* Icon dari phosphor */}
-                {PhosphorIcons[iconName] &&
-                    (() => {
-                        const IconComponent = PhosphorIcons[
-                            iconName
-                        ] as React.ElementType
-                        return (
-                            <IconComponent
-                                size={props.iconSize || 18}
-                                color={iconColor}
-                                weight={iconWeight as any}
-                            />
-                        )
-                    })()}
                 {text}
             </div>
         </motion.div>
@@ -224,31 +201,7 @@ addPropertyControls(LiquidGlassButton, {
         title: "Text Color",
         defaultValue: "#FFFFFF",
     },
-    iconName: {
-        type: ControlType.String,
-        title: "Phosphor Icon",
-        defaultValue: "ShoppingCart",
-        placeholder: "e.g. Star, Heart, User",
-    },
-    iconWeight: {
-        type: ControlType.Enum,
-        title: "Icon Weight",
-        defaultValue: "fill",
-        options: ["thin", "light", "regular", "bold", "fill", "duotone"],
-    },
-    iconColor: {
-        type: ControlType.Color,
-        title: "Icon Color",
-        defaultValue: "#FFFFFF",
-    },
-    iconSize: {
-        type: ControlType.Number,
-        title: "Icon Size",
-        defaultValue: 24,
-        min: 1,
-        max: 100,
-        step: 1,
-    },
+
     backgroundColor: {
         type: ControlType.Color,
         title: "Fill Color",
