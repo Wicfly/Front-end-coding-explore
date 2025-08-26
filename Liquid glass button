@@ -85,7 +85,7 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
             setAutoTextColor(luminance > 186 ? "#000" : "#fff")
         }
     }, [isOpen])
-
+    
     const handleItemClick = (link: string) => {
         if (link.startsWith("#")) {
             const target = document.getElementById(link.slice(1))
@@ -121,6 +121,7 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                 width: "fit-content",
                 height: "fit-content",
                 display: "flex",
+                flexDirection: isOpen ? "column" : "row",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: isOpen ? gap : 0,
@@ -194,7 +195,6 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                     pointerEvents: "none",
                 }}
             />
-
             {isOpen && items.length > 0 ? (
                 <div
                     style={{
@@ -277,6 +277,7 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                     {text}
                 </div>
             )}
+            
         </motion.div>
     )
 }
