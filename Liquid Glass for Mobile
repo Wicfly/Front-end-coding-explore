@@ -106,9 +106,12 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
     const items = menuItems ?? []
     const gap = itemGap ?? 8
     const menuPad = menuPadding ?? padding
+    const menuMaxWidth = Math.max(0, 320 - menuPad * 2)
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
     const [highlightX, setHighlightX] = useState(0)
     const [highlightW, setHighlightW] = useState(0)
+    const [highlightY, setHighlightY] = useState(0)
+    const [highlightH, setHighlightH] = useState(0)
     const itemRefs = useRef<Array<HTMLDivElement | null>>([])
     const highlightMargin = menuPad
     const highlightRadius = Math.max(0, borderRadius - highlightMargin)
@@ -153,18 +156,15 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                 if (el) {
                     setHighlightX(el.offsetLeft)
                     setHighlightW(el.offsetWidth)
+                    setHighlightY(el.offsetTop)
+                    setHighlightH(el.offsetHeight)
                 }
             }
         }
         updateActive()
         window.addEventListener("scroll", updateActive)
         return () => window.removeEventListener("scroll", updateActive)
-    }, [items])
-
-    const handleButtonClick = () => {
-        setIsOpen(!isOpen)
-        if (onClick) onClick()
-    }
+    }, [items, isOpen])
 
     const handleButtonClick = () => {
         setIsOpen(!isOpen)
@@ -184,8 +184,9 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                 width: "fit-content",
                 height:
                     isOpen && items.length > 0
-                        ? menuPad * 2 + 46
+                        ? "auto"
                         : "fit-content",
+                maxWidth: isOpen && items.length > 0 ? 320 : undefined,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -268,7 +269,9 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                         flexDirection: "row",
                         alignItems: "center",
                         gap,
-                        height: 46,
+                        flexWrap: "wrap",
+                        maxWidth: menuMaxWidth,
+                        minHeight: 46,
                     }}
                 >
                     {indicatorIndex !== null && (
@@ -278,10 +281,10 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                             animate={{ opacity: 1 }}
                             style={{
                                 position: "absolute",
-                                top: 0,
+                                top: highlightY,
                                 left: highlightX,
                                 width: highlightW,
-                                height: 46,
+                                height: highlightH,
                                 borderRadius: highlightRadius,
                                 background: hoverBg,
                                 zIndex: 1,
@@ -307,6 +310,8 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                                 if (el) {
                                     setHighlightX(el.offsetLeft)
                                     setHighlightW(el.offsetWidth)
+                                    setHighlightY(el.offsetTop)
+                                    setHighlightH(el.offsetHeight)
                                 }
                                 setHoveredIndex(index)
                             }}
@@ -317,6 +322,8 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                                     if (el) {
                                         setHighlightX(el.offsetLeft)
                                         setHighlightW(el.offsetWidth)
+                                        setHighlightY(el.offsetTop)
+                                        setHighlightH(el.offsetHeight)
                                     }
                                 }
                             }}
