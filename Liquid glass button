@@ -1,7 +1,6 @@
 import { addPropertyControls, ControlType } from "framer"
-import { useRef } from "react"
+import { useRef, useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import * as PhosphorIcons from "phosphor-react"
 
 interface LiquidGlassButtonProps {
     text: string
@@ -12,10 +11,6 @@ interface LiquidGlassButtonProps {
     wrapStrength: number
     borderRadius: number
     font: any
-    iconName: string
-    iconWeight: string
-    iconColor: string
-    iconSize: number
     outerBorderColor: string
     outerBorderOpacity: number
     innerBorderColor: string
@@ -26,6 +21,9 @@ interface LiquidGlassButtonProps {
     paddingRight: number
     paddingTop: number
     paddingBottom: number
+    menuItems?: { label: string; link: string }[]
+    itemGap?: number
+    menuPadding?: number
     onClick?: () => void
     style?: React.CSSProperties
 }
@@ -38,7 +36,7 @@ function hexToRGB(hex: string) {
 }
 
 /**
- * LiquidGlass Button with font and Phosphor icon option
+ * LiquidGlass Button with font
  *
  * @framerIntrinsicWidth 200
  * @framerIntrinsicHeight 60
@@ -55,9 +53,6 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
         wrapStrength,
         borderRadius,
         font,
-        iconName,
-        iconWeight,
-        iconColor,
         outerBorderColor,
         outerBorderOpacity,
         innerBorderColor,
@@ -68,21 +63,79 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
         paddingRight,
         paddingTop,
         paddingBottom,
+        menuItems,
+        itemGap,
+        menuPadding,
         onClick,
         style,
     } = props
 
     const buttonRef = useRef<HTMLDivElement>(null)
+    const itemRefs = useRef<HTMLDivElement[]>([])
+    const textRefs = useRef<HTMLSpanElement[]>([])
+    const [isOpen, setIsOpen] = useState(false)
+    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+    const [autoTextColor, setAutoTextColor] = useState(textColor)
+    const [hoverBg, setHoverBg] = useState({ left: 0, width: 0 })
+    const highlightRadius = 50
+
+    useEffect(() => {
+        if (!isOpen) return
+        if (typeof window !== "undefined") {
+            const bg = window.getComputedStyle(document.body).backgroundColor
+            const rgb = bg.match(/\d+/g)?.map(Number) ?? [255, 255, 255]
+            const luminance = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]
+            setAutoTextColor(luminance > 186 ? "#000" : "#fff")
+        }
+    }, [isOpen])
+
+    useEffect(() => {
+        if (
+            hoveredIndex === null ||
+            !buttonRef.current ||
+            !itemRefs.current[hoveredIndex] ||
+            !textRefs.current[hoveredIndex]
+        )
+            return
+        const containerRect = buttonRef.current.getBoundingClientRect()
+        const textRect = textRefs.current[hoveredIndex].getBoundingClientRect()
+        setHoverBg({
+            left: textRect.left - containerRect.left,
+            width: textRect.width,
+        })
+    }, [hoveredIndex, isOpen])
+
+    const handleItemClick = (link: string) => {
+        if (link.startsWith("#")) {
+            const target = document.getElementById(link.slice(1))
+            if (target) {
+                target.scrollIntoView({ behavior: "smooth" })
+            }
+        } else {
+            window.location.href = link
+        }
+    }
 
     // Calculate padding values
     const padLeft = paddingLeft ?? padding
     const padRight = paddingRight ?? padding
     const padTop = paddingTop ?? padding
     const padBottom = paddingBottom ?? padding
+    // menu layout values
+    const items = menuItems ?? []
+    const gap = itemGap ?? 8
+    const menuPad = menuPadding ?? padding
+    const highlightMargin = 4
 
     return (
         <motion.div
             ref={buttonRef}
+            layout
+            onHoverStart={() => setIsOpen(true)}
+            onHoverEnd={() => {
+                setIsOpen(false)
+                setHoveredIndex(null)
+            }}
             onClick={onClick}
             style={{
                 position: "relative",
@@ -90,21 +143,22 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                 cursor: "pointer",
                 borderRadius,
                 width: "fit-content",
-                height: "fit-content",
+                height: isOpen && items.length > 0 ? menuPad * 2 + 46 : "fit-content",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                gap: isOpen ? gap : 0,
                 boxShadow: shadow ? "0 2px 8px rgba(0,0,0,0.08)" : "none",
                 border: `1px solid ${outerBorderColor}`,
                 opacity: outerBorderOpacity,
-                paddingLeft: padLeft,
-                paddingRight: padRight,
-                paddingTop: padTop,
-                paddingBottom: padBottom,
+                paddingLeft: isOpen ? menuPad : padLeft,
+                paddingRight: isOpen ? menuPad : padRight,
+                paddingTop: isOpen ? menuPad : padTop,
+                paddingBottom: isOpen ? menuPad : padBottom,
                 ...style,
             }}
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+            whileHover={{ scale: 1.02 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
         >
             <svg style={{ display: "none" }}>
                 <filter id="liquid-wrap-filter">
@@ -165,37 +219,83 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                 }}
             />
 
-            <div
-                style={{
-                    position: "relative",
-                    zIndex: 2,
-                    color: textColor,
-                    ...font,
-                    fontWeight: 600,
-                    textAlign: "center",
-                    whiteSpace: "nowrap",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 8,
-                }}
-            >
-                {/* Icon dari phosphor */}
-                {PhosphorIcons[iconName] &&
-                    (() => {
-                        const IconComponent = PhosphorIcons[
-                            iconName
-                        ] as React.ElementType
-                        return (
-                            <IconComponent
-                                size={props.iconSize || 18}
-                                color={iconColor}
-                                weight={iconWeight as any}
-                            />
-                        )
-                    })()}
-                {text}
-            </div>
+            {isOpen && hoveredIndex !== null && (
+                <motion.div
+                    style={{
+                        position: "absolute",
+                        top: highlightMargin,
+                        bottom: highlightMargin,
+                        background: "rgba(0,0,0,0.5)",
+                        borderRadius: highlightRadius,
+                        zIndex: 1,
+                        pointerEvents: "none",
+                    }}
+                    animate={{ left: hoverBg.left, width: hoverBg.width }}
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                />
+            )}
+
+            {isOpen && items.length > 0 ? (
+                <div
+                    style={{
+                        position: "relative",
+                        zIndex: 2,
+                        display: "flex",
+                        flexDirection: "row",
+                        gap,
+                        alignItems: "center",
+                    }}
+                >
+                    {items.map((item, index) => (
+                        <div
+                            key={index}
+                            ref={(el) => (itemRefs.current[index] = el!)}
+                            onMouseEnter={() => setHoveredIndex(index)}
+                            onClick={() => handleItemClick(item.link)}
+                            style={{
+                                position: "relative",
+                                zIndex: 2,
+                                padding: "0 4px",
+                                height: 46,
+                                display: "flex",
+                                alignItems: "center",
+                                cursor: "pointer",
+                            }}
+                        >
+                            <span
+                                ref={(el) => (textRefs.current[index] = el!)}
+                                style={{
+                                    position: "relative",
+                                    zIndex: 1,
+                                    color: hoveredIndex === index ? "#fff" : autoTextColor,
+                                    ...font,
+                                    fontWeight: 500,
+                                    whiteSpace: "nowrap",
+                                }}
+                            >
+                                {item.label}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <div
+                    style={{
+                        position: "relative",
+                        zIndex: 2,
+                        color: textColor,
+                        ...font,
+                        fontWeight: 600,
+                        textAlign: "center",
+                        whiteSpace: "nowrap",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                    }}
+                >
+                    {text}
+                </div>
+            )}
         </motion.div>
     )
 }
@@ -223,31 +323,6 @@ addPropertyControls(LiquidGlassButton, {
         type: ControlType.Color,
         title: "Text Color",
         defaultValue: "#FFFFFF",
-    },
-    iconName: {
-        type: ControlType.String,
-        title: "Phosphor Icon",
-        defaultValue: "ShoppingCart",
-        placeholder: "e.g. Star, Heart, User",
-    },
-    iconWeight: {
-        type: ControlType.Enum,
-        title: "Icon Weight",
-        defaultValue: "fill",
-        options: ["thin", "light", "regular", "bold", "fill", "duotone"],
-    },
-    iconColor: {
-        type: ControlType.Color,
-        title: "Icon Color",
-        defaultValue: "#FFFFFF",
-    },
-    iconSize: {
-        type: ControlType.Number,
-        title: "Icon Size",
-        defaultValue: 24,
-        min: 1,
-        max: 100,
-        step: 1,
     },
     backgroundColor: {
         type: ControlType.Color,
@@ -334,5 +409,36 @@ addPropertyControls(LiquidGlassButton, {
         defaultValue: true,
         enabledTitle: "Show",
         disabledTitle: "Hide",
+    },
+    menuItems: {
+        type: ControlType.Array,
+        title: "Menu Items",
+        propertyControl: {
+            type: ControlType.Object,
+            controls: {
+                label: { type: ControlType.String, title: "Label" },
+                link: { type: ControlType.String, title: "Link" },
+            },
+        },
+        defaultValue: [
+            { label: "Page 1", link: "#" },
+            { label: "Page 2", link: "#" },
+        ],
+    },
+    itemGap: {
+        type: ControlType.Number,
+        title: "Item Gap",
+        defaultValue: 8,
+        min: 0,
+        max: 40,
+        step: 1,
+    },
+    menuPadding: {
+        type: ControlType.Number,
+        title: "Menu Padding",
+        defaultValue: 4,
+        min: 0,
+        max: 60,
+        step: 1,
     },
 })
