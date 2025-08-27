@@ -145,6 +145,7 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                 width: "fit-content",
                 height: isOpen && items.length > 0 ? menuPad * 2 + 46 : "fit-content",
                 display: "flex",
+                flexDirection: isOpen ? "column" : "row",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: isOpen ? gap : 0,
@@ -218,14 +219,15 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                     pointerEvents: "none",
                 }}
             />
-
             {isOpen && hoveredIndex !== null && (
                 <motion.div
                     style={{
                         position: "absolute",
                         top: highlightMargin,
                         bottom: highlightMargin,
-                        background: "rgba(0,0,0,0.5)",
+                        background: "rgba(128,128,128,0.25)",
+                        backdropFilter: `blur(${blurAmount}px)`,
+                        filter: "url(#liquid-wrap-filter)",
                         borderRadius: highlightRadius,
                         zIndex: 1,
                         pointerEvents: "none",
