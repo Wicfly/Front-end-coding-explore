@@ -259,7 +259,10 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                         >
                             <span
                                 style={{
-                                    color: autoTextColor,
+                                    color:
+                                        hoveredIndex === index
+                                            ? "#fff"
+                                            : autoTextColor,
                                     ...font,
                                     fontWeight: 500,
                                     whiteSpace: "nowrap",
