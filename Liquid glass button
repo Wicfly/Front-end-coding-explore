@@ -1,5 +1,5 @@
 import { addPropertyControls, ControlType } from "framer"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { motion } from "framer-motion"
 
 interface LiquidGlassButtonProps {
@@ -104,7 +104,10 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
     const gap = itemGap ?? 8
     const menuPad = menuPadding ?? padding
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
-    const highlightMargin = 4
+    const [highlightX, setHighlightX] = useState(0)
+    const [highlightW, setHighlightW] = useState(0)
+    const itemRefs = useRef<Array<HTMLDivElement | null>>([])
+    const highlightMargin = menuPad
     const highlightRadius = Math.max(0, borderRadius - highlightMargin)
     const hoverBg = "rgba(0,0,0,0.35)"
     return (
@@ -123,9 +126,7 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                 width: "fit-content",
                 height:
                     isOpen && items.length > 0
-                        ? menuPad * 2 +
-                          items.length * 46 +
-                          gap * (items.length - 1)
+                        ? menuPad * 2 + 46
                         : "fit-content",
                 display: "flex",
                 alignItems: "center",
@@ -223,8 +224,10 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                         position: "relative",
                         zIndex: 2,
                         display: "flex",
-                        flexDirection: "column",
+                        flexDirection: "row",
+                        alignItems: "center",
                         gap,
+                        height: 46,
                     }}
                 >
                     {hoveredIndex !== null && (
@@ -232,25 +235,29 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                             layout
                             style={{
                                 position: "absolute",
-                                top: hoveredIndex * (46 + gap),
-                                left: highlightMargin,
-                                right: highlightMargin,
+                                top: 0,
+                                left: highlightX,
+                                width: highlightW,
                                 height: 46,
                                 borderRadius: highlightRadius,
                                 background: hoverBg,
                                 zIndex: 1,
                             }}
-                            transition={{
-                                type: "spring",
-                                stiffness: 400,
-                                damping: 30,
-                            }}
+                            transition={{ type: "spring", stiffness: 400, damping: 30 }}
                         />
                     )}
                     {items.map((item, index) => (
                         <motion.div
                             key={index}
-                            onMouseEnter={() => setHoveredIndex(index)}
+                            ref={el => (itemRefs.current[index] = el)}
+                            onMouseEnter={() => {
+                                const el = itemRefs.current[index]
+                                if (el) {
+                                    setHighlightX(el.offsetLeft)
+                                    setHighlightW(el.offsetWidth)
+                                }
+                                setHoveredIndex(index)
+                            }}
                             onMouseLeave={() => setHoveredIndex(null)}
                             onClick={() => handleItemClick(item.link)}
                             style={{
@@ -263,11 +270,7 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                                 cursor: "pointer",
                             }}
                             whileHover={{ scale: 1.05 }}
-                            transition={{
-                                type: "spring",
-                                stiffness: 300,
-                                damping: 20,
-                            }}
+                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
                         >
                             <span
                                 style={{
