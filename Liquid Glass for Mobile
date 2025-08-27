@@ -1,0 +1,470 @@
+import { addPropertyControls, ControlType } from "framer"
+import { useState, useEffect, useRef } from "react"
+import { motion } from "framer-motion"
+
+interface LiquidGlassButtonProps {
+    text: string
+    backgroundColor: string
+    textColor: string
+    blurOpacity: number
+    blurAmount: number
+    wrapStrength: number
+    borderRadius: number
+    font: any
+    outerBorderColor: string
+    outerBorderOpacity: number
+    innerBorderColor: string
+    innerBorderOpacity: number
+    shadow: boolean
+    padding: number
+    paddingLeft: number
+    paddingRight: number
+    paddingTop: number
+    paddingBottom: number
+    menuItems?: { label: string; link: string }[]
+    itemGap?: number
+    menuPadding?: number
+    onClick?: () => void
+    style?: React.CSSProperties
+}
+
+function hexToRGB(hex: string) {
+    const r = parseInt(hex.slice(1, 3), 16)
+    const g = parseInt(hex.slice(3, 5), 16)
+    const b = parseInt(hex.slice(5, 7), 16)
+    return `${r},${g},${b}`
+}
+
+/**
+ * LiquidGlass Button with font
+ *
+ * @framerIntrinsicWidth 200
+ * @framerIntrinsicHeight 60
+ * @framerSupportedLayoutWidth auto
+ * @framerSupportedLayoutHeight auto
+ */
+export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
+    const {
+        text,
+        backgroundColor,
+        textColor,
+        blurOpacity,
+        blurAmount,
+        wrapStrength,
+        borderRadius,
+        font,
+        outerBorderColor,
+        outerBorderOpacity,
+        innerBorderColor,
+        innerBorderOpacity,
+        shadow,
+        padding,
+        paddingLeft,
+        paddingRight,
+        paddingTop,
+        paddingBottom,
+        menuItems,
+        itemGap,
+        menuPadding,
+        onClick,
+        style,
+    } = props
+
+    const [isOpen, setIsOpen] = useState(false)
+    const [autoTextColor, setAutoTextColor] = useState(textColor)
+
+    useEffect(() => {
+        if (!isOpen) return
+        if (typeof window !== "undefined") {
+            const bg = window.getComputedStyle(document.body).backgroundColor
+            const rgb = bg.match(/\d+/g)?.map(Number) ?? [255, 255, 255]
+            const luminance = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]
+            setAutoTextColor(luminance > 186 ? "#000" : "#fff")
+        }
+    }, [isOpen])
+
+    const handleItemClick = (link: string) => {
+        if (link.startsWith("#")) {
+            const target = document.getElementById(link.slice(1))
+            if (target) {
+                target.scrollIntoView({ behavior: "smooth" })
+            }
+        } else {
+            window.location.href = link
+        }
+    }
+
+    // Calculate padding values
+    const padLeft = paddingLeft ?? padding
+    const padRight = paddingRight ?? padding
+    const padTop = paddingTop ?? padding
+    const padBottom = paddingBottom ?? padding
+    // menu layout values
+    const items = menuItems ?? []
+    const gap = itemGap ?? 8
+    const menuPad = menuPadding ?? padding
+    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+    const [highlightX, setHighlightX] = useState(0)
+    const [highlightW, setHighlightW] = useState(0)
+    const itemRefs = useRef<Array<HTMLDivElement | null>>([])
+    const highlightMargin = menuPad
+    const highlightRadius = Math.max(0, borderRadius - highlightMargin)
+    const hoverBg = "rgba(0,0,0,0.35)"
+
+    return (
+        <motion.div
+            layout
+            onHoverStart={() => setIsOpen(true)}
+            onHoverEnd={() => {
+                setIsOpen(false)
+            }}
+            onClick={onClick}
+            style={{
+                position: "relative",
+                overflow: "hidden",
+                cursor: "pointer",
+                borderRadius,
+                width: "fit-content",
+                height:
+                    isOpen && items.length > 0
+                        ? menuPad * 2 + 46
+                        : "fit-content",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: shadow ? "0 2px 8px rgba(0,0,0,0.08)" : "none",
+                border: `1px solid ${outerBorderColor}`,
+                opacity: outerBorderOpacity,
+                paddingLeft: isOpen ? menuPad : padLeft,
+                paddingRight: isOpen ? menuPad : padRight,
+                paddingTop: isOpen ? menuPad : padTop,
+                paddingBottom: isOpen ? menuPad : padBottom,
+                ...style,
+            }}
+            whileHover={{ scale: 1.02 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        >
+            <svg style={{ display: "none" }}>
+                <filter id="liquid-wrap-filter">
+                    <feTurbulence
+                        type="fractalNoise"
+                        baseFrequency="0.02"
+                        numOctaves="2"
+                        seed="3"
+                        result="turbulence"
+                    />
+                    <feComponentTransfer in="turbulence" result="tweak">
+                        <feFuncR type="linear" slope="2" intercept="-0.5" />
+                        <feFuncG type="linear" slope="2" intercept="-0.5" />
+                        <feFuncB type="linear" slope="0" intercept="0" />
+                    </feComponentTransfer>
+                    <feGaussianBlur
+                        in="tweak"
+                        stdDeviation={blurAmount}
+                        result="blurredMap"
+                    />
+                    <feDisplacementMap
+                        in="SourceGraphic"
+                        in2="blurredMap"
+                        scale={wrapStrength}
+                        xChannelSelector="R"
+                        yChannelSelector="G"
+                    />
+                </filter>
+            </svg>
+
+            <div
+                style={{
+                    position: "absolute",
+                    inset: 0,
+                    backdropFilter: `blur(${blurAmount}px)`,
+                    filter: "url(#liquid-wrap-filter)",
+                    isolation: "isolate",
+                }}
+            />
+
+            <div
+                style={{
+                    position: "absolute",
+                    inset: 0,
+                    background: backgroundColor,
+                    opacity: blurOpacity,
+                }}
+            />
+
+            <div
+                style={{
+                    position: "absolute",
+                    inset: 0,
+                    borderRadius,
+                    border: `1px inset ${innerBorderColor}`,
+                    opacity: innerBorderOpacity,
+                    pointerEvents: "none",
+                }}
+            />
+            {isOpen && hoveredIndex !== null && (
+                <motion.div
+                    style={{
+                        position: "absolute",
+                        top: highlightMargin,
+                        bottom: highlightMargin,
+                        background: "rgba(128,128,128,0.25)",
+                        backdropFilter: `blur(${blurAmount}px)`,
+                        filter: "url(#liquid-wrap-filter)",
+                        borderRadius: highlightRadius,
+                        zIndex: 1,
+                        pointerEvents: "none",
+                    }}
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                />
+            )}
+
+            {isOpen && items.length > 0 ? (
+                <div
+                    style={{
+                        position: "relative",
+                        zIndex: 2,
+                        display: "flex",
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap,
+                        height: 46,
+                    }}
+                >
+                    {hoveredIndex !== null && (
+                        <motion.div
+                            layout
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            style={{
+                                position: "absolute",
+                                top: 0,
+                                left: highlightX,
+                                width: highlightW,
+                                height: 46,
+                                borderRadius: highlightRadius,
+                                background: hoverBg,
+                                zIndex: 1,
+                                transformOrigin: "center",
+                            }}
+                            transition={{
+                                duration: 0.2,
+                                layout: {
+                                    type: "spring",
+                                    stiffness: 400,
+                                    damping: 30,
+                                },
+                            }}
+                        />
+                    )}
+                    {items.map((item, index) => (
+                        <motion.div
+                            key={index}
+                            ref={(el) => (itemRefs.current[index] = el)}
+                            onMouseEnter={() => {
+                                const el = itemRefs.current[index]
+                                if (el) {
+                                    setHighlightX(el.offsetLeft)
+                                    setHighlightW(el.offsetWidth)
+                                }
+                                setHoveredIndex(index)
+                            }}
+                            onMouseLeave={() => setHoveredIndex(null)}
+                            onClick={() => handleItemClick(item.link)}
+                            style={{
+                                position: "relative",
+                                zIndex: 2,
+                                height: 46,
+                                display: "flex",
+                                alignItems: "center",
+                                padding: "0 15px",
+                                cursor: "pointer",
+                            }}
+                            whileHover={{ scale: 1.05 }}
+                            transition={{
+                                type: "spring",
+                                stiffness: 300,
+                                damping: 20,
+                            }}
+                        >
+                            <span
+                                style={{
+                                    color:
+                                        hoveredIndex === index
+                                            ? "#fff"
+                                            : autoTextColor,
+                                    ...font,
+                                    fontWeight: 500,
+                                    whiteSpace: "nowrap",
+                                    transition: "color 0.2s ease",
+                                }}
+                            >
+                                {item.label}
+                            </span>
+                        </motion.div>
+                    ))}
+                </div>
+            ) : (
+                <div
+                    style={{
+                        position: "relative",
+                        zIndex: 2,
+                        color: textColor,
+                        ...font,
+                        fontWeight: 600,
+                        textAlign: "center",
+                        whiteSpace: "nowrap",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                    }}
+                >
+                    {text}
+                </div>
+            )}
+        </motion.div>
+    )
+}
+
+addPropertyControls(LiquidGlassButton, {
+    text: {
+        type: ControlType.String,
+        title: "Text Button",
+        defaultValue: "Add to Cart",
+    },
+    font: {
+        type: ControlType.Font,
+        title: "Text Font",
+        controls: "extended",
+        defaultFontType: "sans-serif",
+        defaultValue: {
+            fontFamily: "Inter",
+            fontSize: 18,
+            fontWeight: 600,
+            letterSpacing: "-0.1px",
+            lineHeight: "18px",
+        },
+    },
+    textColor: {
+        type: ControlType.Color,
+        title: "Text Color",
+        defaultValue: "#FFFFFF",
+    },
+    backgroundColor: {
+        type: ControlType.Color,
+        title: "Fill Color",
+        defaultValue: "rgba(240,240,255,0.25)",
+    },
+    padding: {
+        type: ControlType.FusedNumber,
+        title: "Padding",
+        defaultValue: 16,
+        toggleKey: "paddingPerSide",
+        toggleTitles: ["All Sides", "Per Side"],
+        valueKeys: [
+            "paddingTop",
+            "paddingRight",
+            "paddingBottom",
+            "paddingLeft",
+        ],
+        valueLabels: ["T", "R", "B", "L"],
+        min: 0,
+        unit: "px",
+    },
+    borderRadius: {
+        type: ControlType.Number,
+        title: "Radius",
+        defaultValue: 28,
+        min: 0,
+        max: 100,
+        step: 1,
+    },
+    wrapStrength: {
+        type: ControlType.Number,
+        title: "Wrap Strength",
+        defaultValue: 100,
+        min: 0,
+        max: 300,
+        step: 1,
+    },
+    blurAmount: {
+        type: ControlType.Number,
+        title: "Blur",
+        defaultValue: 4,
+        min: 0,
+        max: 20,
+        step: 0.5,
+    },
+    blurOpacity: {
+        type: ControlType.Number,
+        title: "Blur Opacity",
+        defaultValue: 0.3,
+        min: 0,
+        max: 1,
+        step: 0.01,
+    },
+    outerBorderColor: {
+        type: ControlType.Color,
+        title: "Outer Border",
+        defaultValue: "rgba(255,255,255,0.30)",
+    },
+    outerBorderOpacity: {
+        type: ControlType.Number,
+        title: "Outer Opacity",
+        defaultValue: 1,
+        min: 0,
+        max: 1,
+        step: 0.05,
+    },
+    innerBorderColor: {
+        type: ControlType.Color,
+        title: "Inner Border",
+        defaultValue: "rgba(255,255,255,0.5)",
+    },
+    innerBorderOpacity: {
+        type: ControlType.Number,
+        title: "Inner Opacity",
+        defaultValue: 1,
+        min: 0,
+        max: 1,
+        step: 0.05,
+    },
+    shadow: {
+        type: ControlType.Boolean,
+        title: "Shadow",
+        defaultValue: true,
+        enabledTitle: "Show",
+        disabledTitle: "Hide",
+    },
+    menuItems: {
+        type: ControlType.Array,
+        title: "Menu Items",
+        propertyControl: {
+            type: ControlType.Object,
+            controls: {
+                label: { type: ControlType.String, title: "Label" },
+                link: { type: ControlType.String, title: "Link" },
+            },
+        },
+        defaultValue: [
+            { label: "Page 1", link: "#" },
+            { label: "Page 2", link: "#" },
+        ],
+    },
+    itemGap: {
+        type: ControlType.Number,
+        title: "Item Gap",
+        defaultValue: 8,
+        min: 0,
+        max: 40,
+        step: 1,
+    },
+    menuPadding: {
+        type: ControlType.Number,
+        title: "Menu Padding",
+        defaultValue: 4,
+        min: 0,
+        max: 60,
+        step: 1,
+    },
+})
