@@ -166,6 +166,11 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
         if (onClick) onClick()
     }
 
+    const handleButtonClick = () => {
+        setIsOpen(!isOpen)
+        if (onClick) onClick()
+    }
+
     return (
         <motion.div
             layout
