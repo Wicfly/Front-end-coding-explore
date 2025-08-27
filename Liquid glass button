@@ -1,5 +1,5 @@
 import { addPropertyControls, ControlType } from "framer"
-import { useRef, useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 
 interface LiquidGlassButtonProps {
@@ -70,13 +70,8 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
         style,
     } = props
 
-    const buttonRef = useRef<HTMLDivElement>(null)
-    const itemRefs = useRef<HTMLDivElement[]>([])
     const [isOpen, setIsOpen] = useState(false)
-    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
     const [autoTextColor, setAutoTextColor] = useState(textColor)
-    const [hoverBg, setHoverBg] = useState({ left: 0, width: 0 })
-    const highlightRadius = 50
 
     useEffect(() => {
         if (!isOpen) return
@@ -88,20 +83,6 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
         }
     }, [isOpen])
 
-    useEffect(() => {
-        if (
-            hoveredIndex === null ||
-            !buttonRef.current ||
-            !itemRefs.current[hoveredIndex]
-        )
-            return
-        const containerRect = buttonRef.current.getBoundingClientRect()
-        const itemRect = itemRefs.current[hoveredIndex].getBoundingClientRect()
-        setHoverBg({
-            left: itemRect.left - containerRect.left,
-            width: itemRect.width,
-        })
-    }, [hoveredIndex, isOpen])
 
     const handleItemClick = (link: string) => {
         if (link.startsWith("#")) {
@@ -123,16 +104,13 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
     const items = menuItems ?? []
     const gap = itemGap ?? 8
     const menuPad = menuPadding ?? padding
-    const highlightMargin = 4
-
+    
     return (
         <motion.div
-            ref={buttonRef}
             layout
             onHoverStart={() => setIsOpen(true)}
             onHoverEnd={() => {
                 setIsOpen(false)
-                setHoveredIndex(null)
             }}
             onClick={onClick}
             style={{
@@ -247,10 +225,9 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                     }}
                 >
                     {items.map((item, index) => (
-                        <div
+                    {items.map((item, index) => (
+                        <motion.div
                             key={index}
-                            ref={(el) => (itemRefs.current[index] = el!)}
-                            onMouseEnter={() => setHoveredIndex(index)}
                             onClick={() => handleItemClick(item.link)}
                             style={{
                                 position: "relative",
@@ -261,20 +238,24 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                                 alignItems: "center",
                                 cursor: "pointer",
                             }}
+                            whileHover="hover"
                         >
-                            <span
+                            <motion.span
+                                variants={{ hover: { scale: 1.2 } }}
+                                transition={{ type: "spring", stiffness: 500, damping: 30 }}
                                 style={{
                                     position: "relative",
                                     zIndex: 1,
-                                    color: hoveredIndex === index ? "#fff" : autoTextColor,
+                                    color: autoTextColor,
                                     ...font,
                                     fontWeight: 500,
                                     whiteSpace: "nowrap",
+                                    display: "inline-block",
                                 }}
                             >
                                 {item.label}
-                            </span>
-                        </div>
+                            </motion.span>
+                        </motion.div>
                     ))}
                 </div>
             ) : (
