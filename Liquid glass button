@@ -108,9 +108,19 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
     const [highlightX, setHighlightX] = useState(0)
     const [highlightW, setHighlightW] = useState(0)
     const itemRefs = useRef<Array<HTMLDivElement | null>>([])
+    const sectionRefs = useRef<Array<HTMLElement | null>>([])
     const highlightMargin = menuPad
     const highlightRadius = Math.max(0, borderRadius - highlightMargin)
     const hoverBg = "rgba(0,0,0,0.35)"
+
+    useEffect(() => {
+        if (typeof document === "undefined") return
+        sectionRefs.current = items.map(item =>
+            item.link.startsWith("#")
+                ? document.getElementById(item.link.slice(1))
+                : null
+        )
+    }, [items])
     
     useEffect(() => {
         if (typeof window === "undefined") return
@@ -129,6 +139,26 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
             window.removeEventListener("hashchange", updateIndex)
             window.removeEventListener("popstate", updateIndex)
         }
+    }, [items])
+
+    useEffect(() => {
+        if (typeof window === "undefined") return
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const idx = sectionRefs.current.indexOf(
+                        entry.target as HTMLElement
+                    )
+                    if (idx !== -1) {
+                        setCurrentIndex(idx)
+                    }
+                }
+            })
+        })
+        sectionRefs.current.forEach(el => {
+            if (el) observer.observe(el)
+        })
+        return () => observer.disconnect()
     }, [items])
 
     useEffect(() => {
