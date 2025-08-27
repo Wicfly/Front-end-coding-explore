@@ -92,6 +92,7 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
         } else {
             window.location.href = link
         }
+        setIsOpen(false)
     }
 
     // Calculate padding values
@@ -111,14 +112,15 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
     const highlightRadius = Math.max(0, borderRadius - highlightMargin)
     const hoverBg = "rgba(0,0,0,0.35)"
 
+    const handleButtonClick = () => {
+        setIsOpen(!isOpen)
+        if (onClick) onClick()
+    }
+
     return (
         <motion.div
             layout
-            onHoverStart={() => setIsOpen(true)}
-            onHoverEnd={() => {
-                setIsOpen(false)
-            }}
-            onClick={onClick}
+            onClick={handleButtonClick}
             style={{
                 position: "relative",
                 overflow: "hidden",
