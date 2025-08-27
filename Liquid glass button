@@ -83,13 +83,15 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
         }
     }, [isOpen])
 
-    const handleItemClick = (link: string) => {
+    const handleItemClick = (link: string, index: number) => {
         if (link.startsWith("#")) {
             const target = document.getElementById(link.slice(1))
             if (target) {
                 target.scrollIntoView({ behavior: "smooth" })
             }
+            setCurrentIndex(index)
         } else {
+            setCurrentIndex(index)
             window.location.href = link
         }
     }
@@ -104,12 +106,36 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
     const gap = itemGap ?? 8
     const menuPad = menuPadding ?? padding
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+    const [currentIndex, setCurrentIndex] = useState<number | null>(null)
     const [highlightX, setHighlightX] = useState(0)
     const [highlightW, setHighlightW] = useState(0)
     const itemRefs = useRef<Array<HTMLDivElement | null>>([])
     const highlightMargin = menuPad
     const highlightRadius = Math.max(0, borderRadius - highlightMargin)
     const hoverBg = "rgba(0,0,0,0.35)"
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const { pathname, hash } = window.location
+            const idx = items.findIndex(item => {
+                if (item.link.startsWith("#")) return item.link === hash
+                return item.link === pathname || item.link === pathname + hash
+            })
+            setCurrentIndex(idx >= 0 ? idx : null)
+        }
+    }, [items])
+
+    useEffect(() => {
+        const index = hoveredIndex ?? currentIndex
+        if (isOpen && index !== null) {
+            const el = itemRefs.current[index]
+            if (el) {
+                setHighlightX(el.offsetLeft)
+                setHighlightW(el.offsetWidth)
+            }
+        }
+    }, [hoveredIndex, currentIndex, isOpen])
+
+    const activeIndex = hoveredIndex !== null ? hoveredIndex : currentIndex
 
     return (
         <motion.div
@@ -231,7 +257,7 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                         height: 46,
                     }}
                 >
-                    {hoveredIndex !== null && (
+                    {activeIndex !== null && (
                         <motion.div
                             layout
                             initial={{ scale: 0, opacity: 0 }}
@@ -266,7 +292,7 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                                 setHoveredIndex(index)
                             }}
                             onMouseLeave={() => setHoveredIndex(null)}
-                            onClick={() => handleItemClick(item.link)}
+                            onClick={() => handleItemClick(item.link, index)}
                             style={{
                                 position: "relative",
                                 zIndex: 2,
@@ -282,7 +308,8 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                             <span
                                 style={{
                                     color:
-                                        hoveredIndex === index
+                                        hoveredIndex === index ||
+                                        (hoveredIndex === null && currentIndex === index)
                                             ? "#fff"
                                             : autoTextColor,
                                     ...font,
