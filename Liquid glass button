@@ -72,7 +72,6 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
 
     const buttonRef = useRef<HTMLDivElement>(null)
     const itemRefs = useRef<HTMLDivElement[]>([])
-    const textRefs = useRef<HTMLSpanElement[]>([])
     const [isOpen, setIsOpen] = useState(false)
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
     const [autoTextColor, setAutoTextColor] = useState(textColor)
@@ -93,15 +92,14 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
         if (
             hoveredIndex === null ||
             !buttonRef.current ||
-            !itemRefs.current[hoveredIndex] ||
-            !textRefs.current[hoveredIndex]
+            !itemRefs.current[hoveredIndex]
         )
             return
         const containerRect = buttonRef.current.getBoundingClientRect()
-        const textRect = textRefs.current[hoveredIndex].getBoundingClientRect()
+        const itemRect = itemRefs.current[hoveredIndex].getBoundingClientRect()
         setHoverBg({
-            left: textRect.left - containerRect.left,
-            width: textRect.width,
+            left: itemRect.left - containerRect.left,
+            width: itemRect.width,
         })
     }, [hoveredIndex, isOpen])
 
@@ -257,7 +255,7 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                             style={{
                                 position: "relative",
                                 zIndex: 2,
-                                padding: "0 4px",
+                                padding: "0 15px",
                                 height: 46,
                                 display: "flex",
                                 alignItems: "center",
@@ -265,7 +263,6 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                             }}
                         >
                             <span
-                                ref={(el) => (textRefs.current[index] = el!)}
                                 style={{
                                     position: "relative",
                                     zIndex: 1,
