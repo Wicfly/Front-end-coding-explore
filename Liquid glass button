@@ -103,6 +103,10 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
     const items = menuItems ?? []
     const gap = itemGap ?? 8
     const menuPad = menuPadding ?? padding
+    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+    const highlightMargin = 4
+    const highlightRadius = Math.max(0, borderRadius - highlightMargin)
+    const hoverBg = "rgba(0,0,0,0.35)"
 
     return (
         <motion.div
@@ -118,11 +122,13 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                 cursor: "pointer",
                 borderRadius,
                 width: "fit-content",
-                height: isOpen && items.length > 0 ? menuPad * 2 + 46 : "fit-content",
+                height:
+                    isOpen && items.length > 0
+                        ? menuPad * 2 + items.length * 46 + gap * (items.length - 1)
+                        : "fit-content",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: isOpen ? gap : 0,
                 boxShadow: shadow ? "0 2px 8px rgba(0,0,0,0.08)" : "none",
                 border: `1px solid ${outerBorderColor}`,
                 opacity: outerBorderOpacity,
@@ -200,41 +206,54 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                         position: "relative",
                         zIndex: 2,
                         display: "flex",
-                        flexDirection: "row",
+                        flexDirection: "column",
                         gap,
-                        alignItems: "center",
                     }}
                 >
+                    {hoveredIndex !== null && (
+                        <motion.div
+                            layout
+                            style={{
+                                position: "absolute",
+                                top: hoveredIndex * (46 + gap),
+                                left: highlightMargin,
+                                right: highlightMargin,
+                                height: 46,
+                                borderRadius: highlightRadius,
+                                background: hoverBg,
+                                zIndex: 1,
+                            }}
+                            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                        />
+                    )}
                     {items.map((item, index) => (
                         <motion.div
                             key={index}
+                            onMouseEnter={() => setHoveredIndex(index)}
+                            onMouseLeave={() => setHoveredIndex(null)}
                             onClick={() => handleItemClick(item.link)}
                             style={{
                                 position: "relative",
                                 zIndex: 2,
-                                padding: "0 15px",
                                 height: 46,
                                 display: "flex",
                                 alignItems: "center",
+                                padding: "0 15px",
                                 cursor: "pointer",
                             }}
-                            whileHover="hover"
+                            whileHover={{ scale: 1.05 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
                         >
-                            <motion.span
-                                variants={{ hover: { scale: 1.2 } }}
-                                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                            <span
                                 style={{
-                                    position: "relative",
-                                    zIndex: 1,
                                     color: autoTextColor,
                                     ...font,
                                     fontWeight: 500,
                                     whiteSpace: "nowrap",
-                                    display: "inline-block",
                                 }}
                             >
                                 {item.label}
-                            </motion.span>
+                            </span>
                         </motion.div>
                     ))}
                 </div>
