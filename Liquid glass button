@@ -110,6 +110,7 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
     const highlightMargin = menuPad
     const highlightRadius = Math.max(0, borderRadius - highlightMargin)
     const hoverBg = "rgba(0,0,0,0.35)"
+    
     return (
         <motion.div
             layout
@@ -274,7 +275,10 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                         >
                             <span
                                 style={{
-                                    color: autoTextColor,
+                                    color:
+                                        hoveredIndex === index
+                                            ? "#fff"
+                                            : autoTextColor,
                                     ...font,
                                     fontWeight: 500,
                                     whiteSpace: "nowrap",
