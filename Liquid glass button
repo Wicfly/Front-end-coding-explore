@@ -111,6 +111,7 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
     const highlightMargin = menuPad
     const highlightRadius = Math.max(0, borderRadius - highlightMargin)
     const hoverBg = "rgba(0,0,0,0.35)"
+    
     useEffect(() => {
         if (typeof window === "undefined") return
         const updateIndex = () => {
@@ -289,7 +290,13 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                     {items.map((item, index) => (
                         <motion.div
                             key={index}
-                            ref={el => (itemRefs.current[index] = el)}
+                            ref={el => {
+                                itemRefs.current[index] = el
+                                if (el && isOpen && hoveredIndex === null && currentIndex === index) {
+                                    setHighlightX(el.offsetLeft)
+                                    setHighlightW(el.offsetWidth)
+                                }
+                            }}
                             onMouseEnter={() => {
                                 const el = itemRefs.current[index]
                                 if (el) {
