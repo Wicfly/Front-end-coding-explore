@@ -110,7 +110,7 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
     const highlightMargin = menuPad
     const highlightRadius = Math.max(0, borderRadius - highlightMargin)
     const hoverBg = "rgba(0,0,0,0.35)"
-
+    
     return (
         <motion.div
             layout
@@ -202,6 +202,22 @@ export default function LiquidGlassButton(props: LiquidGlassButtonProps) {
                     pointerEvents: "none",
                 }}
             />
+            {isOpen && hoveredIndex !== null && (
+                <motion.div
+                    style={{
+                        position: "absolute",
+                        top: highlightMargin,
+                        bottom: highlightMargin,
+                        background: "rgba(128,128,128,0.25)",
+                        backdropFilter: `blur(${blurAmount}px)`,
+                        filter: "url(#liquid-wrap-filter)",
+                        borderRadius: highlightRadius,
+                        zIndex: 1,
+                        pointerEvents: "none",
+                    }}
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                />
+            )}
 
             {isOpen && items.length > 0 ? (
                 <div
